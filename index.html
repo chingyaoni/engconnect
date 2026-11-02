@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Space Reading Camp - Phonics & Sight Words</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --accent-blue: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-purple: #a855f7;
+      --accent-yellow: #eab308;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      position: fixed;
+      touch-action: manipulation;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Nunito", "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Screen Management */
+    .screen {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      padding: 18px 36px;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Buttons & Touch Targets */
+    button {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.1s ease, filter 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    /* Header Bar */
+    .hud-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+      gap: 16px;
+    }
+
+    .hud-btn {
+      background: #334155;
+      color: var(--text-main);
+      padding: 8px 16px;
+      font-size: 16px;
+      height: 44px;
+    }
+
+    .progress-container {
+      flex: 1;
+      height: 14px;
+      background: #334155;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--accent-green);
+      transition: width 0.08s linear, background-color 0.3s ease;
+    }
+
+    .hud-info {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--accent-yellow);
+    }
+
+    /* 1. START / UNLOCK SCREEN */
+    #screen-start {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+    }
+
+    .hero-title {
+      font-size: 52px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #38bdf8, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: 20px;
+      color: var(--text-sub);
+      margin-bottom: 40px;
+    }
+
+    .launch-btn {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      font-size: 26px;
+      padding: 20px 48px;
+      box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+    }
+
+    /* 2. MAIN MENU SCREEN */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 28px;
+      flex: 1;
+      margin: 14px 0;
+    }
+
+    .menu-card {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 24px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .mode-select-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 20px;
+      margin-bottom: 12px;
+      background: #334155;
+      color: var(--text-main);
+      border: 2px solid transparent;
+    }
+
+    .mode-select-btn.selected {
+      border-color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-blue);
+    }
+
+    .option-title {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .pill-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 10px 16px;
+      font-size: 15px;
+      border-radius: 12px;
+    }
+
+    .pill-btn.active {
+      background: var(--accent-purple);
+      border-color: var(--accent-purple);
+      color: white;
+    }
+
+    .start-game-btn {
+      width: 100%;
+      padding: 18px;
+      font-size: 24px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: white;
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+    }
+
+    /* 3. PHONICS GAME SCREEN */
+    .center-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      margin: 10px 0;
+    }
+
+    .word-card {
+      background: var(--card-bg);
+      border: 3px solid var(--card-border);
+      border-radius: 28px;
+      padding: 24px 70px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .target-word {
+      font-size: 76px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #ffffff;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .speaker-btn {
+      background: #334155;
+      color: var(--accent-blue);
+      font-size: 20px;
+      padding: 8px 18px;
+      border-radius: 999px;
+    }
+
+    .phonics-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      height: 120px;
+      margin-bottom: 8px;
+    }
+
+    .btn-earth {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      font-size: 32px;
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-alien {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      color: white;
+      font-size: 32px;
+      box-shadow: 0 10px 20px rgba(139, 92, 246, 0.35);
+    }
+
+    /* 4. SIGHT WORDS GAME SCREEN */
+    .audio-cue-card {
+      background: var(--card-bg);
+      border: 2px dashed var(--accent-blue);
+      border-radius: 24px;
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .radar-icon {
+      font-size: 40px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    .radar-prompt {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--accent-blue);
+    }
+
+    .sight-words-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+      margin-top: 18px;
+      max-height: 280px;
+    }
+
+    .sight-choice-btn {
+      background: var(--card-bg);
+      border: 3px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 38px;
+      border-radius: 20px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .sight-choice-btn.shake {
+      animation: shake 0.35s ease-in-out;
+      border-color: var(--accent-red);
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    /* 5. REPORT SCREEN */
+    .report-card {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 28px;
+      padding: 24px 36px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin: 12px 0;
+    }
+
+    .report-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stars-box {
+      font-size: 46px;
+      letter-spacing: 6px;
+    }
+
+    .metric-badge {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      padding: 10px 20px;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .weak-words-container {
+      background: #0f172a;
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 96px;
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-content: flex-start;
+    }
+
+    .weak-word-chip {
+      background: #334155;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .report-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      height: 70px;
+    }
+
+    .btn-redrill {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      font-size: 22px;
+    }
+
+    .btn-next-round {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      font-size: 22px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SCREEN 1: AUDIO UNLOCK & START -->
+  <div id="screen-start" class="screen active">
+    <div>
+      <div class="hero-title">SPACE READING CAMP</div>
+      <div class="hero-sub">myView Literacy G1-G2 拼讀與核心高頻字解碼特訓</div>
+    </div>
+    <button class="launch-btn" onclick="initAndUnlockAudio()">
+      🚀 點擊啟動太空訓練營
+    </button>
+  </div>
+
+  <!-- SCREEN 2: MAIN MENU -->
+  <div id="screen-menu" class="screen">
+    <div class="hud-bar">
+      <span style="font-size: 22px; font-weight: 900; color: var(--accent-blue);">🌌 控制中心 (Mission Control)</span>
+      <span class="hud-info" id="mastered-stats-pill">⭐ 已精熟高頻字: 0 / 60</span>
+    </div>
+
+    <div class="menu-grid">
+      <!-- Left: Modes -->
+      <div class="menu-card">
+        <div>
+          <div class="option-title">選擇訓練模式 (SELECT MODE)</div>
+          <button class="mode-select-btn selected" id="btn-mode-phonics" onclick="setMode('phonics')">
+            🛸 模式一：外星解碼基地 (Phonics Quest)
+          </button>
+          <button class="mode-select-btn" id="btn-mode-sight" onclick="setMode('sight')">
+            ⚡ 模式二：光速雷達站 (Sight Words Radar)
+          </button>
+        </div>
+
+        <div id="sub-options-phonics">
+          <div class="option-title">拼讀規則類別 (PHONICS RULES)</div>
+          <div class="pill-group" id="phonics-category-pills"></div>
+        </div>
+
+        <div id="sub-options-sight" style="display:none;">
+          <div class="option-title">高頻字分組 (SIGHT WORD GROUPS)</div>
+          <div class="pill-group" id="sight-category-pills"></div>
+        </div>
+      </div>
+
+      <!-- Right: Timer & Launch -->
+      <div class="menu-card">
+        <div>
+          <div class="option-title">直覺計時設定 (REACTION TIMER)</div>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="setTimerLimit(0, this)">🟢 自由練習 (無限制)</button>
+            <button class="pill-btn" onclick="setTimerLimit(5, this)">🟡 初階 (5秒/題)</button>
+            <button class="pill-btn" onclick="setTimerLimit(3, this)">🟠 進階 (3秒/題)</button>
+            <button class="pill-btn" onclick="setTimerLimit(1.5, this)">🔴 光速 (1.5秒/題)</button>
+          </div>
+          <p style="color: var(--text-sub); font-size: 14px; margin-top: 14px; line-height: 1.5;">
+            * 提示：每輪固定 10 題。進階與光速挑戰能訓練母語大腦的「解碼自動化（Automaticity）」。
+          </p>
+        </div>
+        <button class="start-game-btn" onclick="startRound()">🚀 開始太空任務 (Start Round)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: PHONICS GAME -->
+  <div id="screen-phonics" class="screen">
+    <div class="hud-bar">
+      <button class="hud-btn" onclick="backToMenu()">🏠 主選單</button>
+      <div class="progress-container">
+        <div id="phonics-timer-bar" class="timer-fill"></div>
+      </div>
+      <span class="hud-info" id="phonics-q-idx">1 / 10</span>
+    </div>
+
+    <div class="center-stage">
+      <div class="word-card">
+        <div class="target-word" id="phonics-display-word">cake</div>
+        <button class="speaker-btn" onclick="speakCurrentTarget()">🔊 重新發音</button>
+      </div>
+    </div>
+
+    <div class="phonics-controls">
+      <button class="btn-earth" onclick="handlePhonicsAnswer(true)">
+        🌍 地球真字 (Real Word)
+      </button>
+      <button class="btn-alien" onclick="handlePhonicsAnswer(false)">
+        🛸 外星密碼 (Alien Word)
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: SIGHT WORDS GAME -->
+  <div id="screen-sight" class="screen">
+    <div class="hud-bar">
+      <button class="hud-btn" onclick="backToMenu()">🏠 主選單</button>
+      <div class="progress-container">
+        <div id="sight-timer-bar" class="timer-fill"></div>
+      </div>
+      <span class="hud-info" id="sight-q-idx">1 / 10</span>
+    </div>
+
+    <div class="center-stage">
+      <div class="audio-cue-card" onclick="speakCurrentTarget()">
+        <span class="radar-icon">📡</span>
+        <div class="radar-prompt">點擊聽取目標密碼 (Listen!)</div>
+      </div>
+      <div class="sight-words-grid" id="sight-choices-box"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: REPORT DASHBOARD -->
+  <div id="screen-report" class="screen">
+    <div class="hud-bar">
+      <span style="font-size: 22px; font-weight: 900; color: var(--accent-yellow);">🎉 本輪任務結算 (Round Report)</span>
+      <button class="hud-btn" onclick="backToMenu()">❌ 返回選單</button>
+    </div>
+
+    <div class="report-card">
+      <div class="report-header">
+        <div class="stars-box" id="report-stars">⭐⭐⭐</div>
+        <div class="metric-badge" id="report-accuracy">答對率: 9 / 10 (90%)</div>
+        <div class="metric-badge" id="report-speed">⚡ 平均反應: 1.2 秒/題</div>
+      </div>
+
+      <div>
+        <div class="option-title" style="margin-bottom: 6px;">需要再次熟悉的太空密碼 (點擊重聽發音)：</div>
+        <div class="weak-words-container" id="report-weak-words"></div>
+      </div>
+
+      <div class="report-actions">
+        <button class="btn-redrill" id="btn-redrill" onclick="startRedrill()">🔁 僅重測弱項單字</button>
+        <button class="btn-next-round" onclick="startRound()">🚀 開始下一輪 (Next Round)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. DATA SPECIFICATION (Aligned with Savvas myView Literacy G1-G2)
+       ========================================================================== */
+    const PHONICS_DATA = [
+      {
+        id: "digraphs",
+        name: "複合子音 (ch, sh, th, bl...)",
+        real: ["ship", "chop", "thin", "black", "frog"],
+        alien: ["shep", "chab", "thim", "flug", "trop"]
+      },
+      {
+        id: "cvce",
+        name: "長母音靜音 e (CVCe)",
+        real: ["cake", "bike", "rope", "cute", "grape"],
+        alien: ["vake", "zime", "fope", "dube", "clate"]
+      },
+      {
+        id: "vowel_teams",
+        name: "母音組合 (ai, ay, ee, ea, oa)",
+        real: ["train", "play", "deep", "meat", "boat"],
+        alien: ["main", "tray", "zeep", "feat", "goap"]
+      },
+      {
+        id: "bossy_r",
+        name: "R 控制母音 (ar, er, ir, or, ur)",
+        real: ["farm", "horn", "her", "bird", "burn"],
+        alien: ["tarm", "dorn", "ger", "sbird", "murn"]
+      },
+      {
+        id: "diphthongs",
+        name: "雙母音與特殊音 (ou, ow, oi, oo)",
+        real: ["cloud", "clown", "coin", "toy", "look", "moon"],
+        alien: ["foud", "trow", "zoin", "ploy", "dook", "goon"]
+      },
+      {
+        id: "inflections",
+        name: "詞尾變化與雙音節 (-ed, -ing, 閉音節)",
+        real: ["jumps", "boxes", "hunted", "melting", "sunset", "rabbit"],
+        alien: ["lips", "foxes", "punted", "silting", "napket", "hobbit"]
+      }
+    ];
+
+    const SIGHT_WORDS_DATA = [
+      {
+        id: "group1",
+        name: "第 1 組：結構與連接詞 (20字)",
+        words: [
+          "after", "again", "any", "because", "could", "every", "from", "give", "how", "just",
+          "know", "live", "many", "may", "of", "over", "round", "some", "them", "then"
+        ]
+      },
+      {
+        id: "group2",
+        name: "第 2 組：動作與時態詞 (20字)",
+        words: [
+          "ask", "came", "did", "found", "gave", "going", "had", "open", "put", "saw",
+          "say", "take", "thank", "think", "walk", "went", "were", "will", "work", "would"
+        ]
+      },
+      {
+        id: "group3",
+        name: "第 3 組：修飾與空間疑問詞 (20字)",
+        words: [
+          "always", "around", "better", "cold", "first", "little", "make", "new", "old", "pretty",
+          "right", "their", "under", "very", "warm", "wash", "what", "when", "where", "who"
+        ]
+      }
+    ];
+
+    const ALL_SIGHT_WORDS = SIGHT_WORDS_DATA.flatMap(g => g.words);
+
+    /* ==========================================================================
+       2. AUDIO & SPEECH SYNTHESIS ENGINE (iOS Unlocked)
+       ========================================================================== */
+    let audioCtx = null;
+    let synth = window.speechSynthesis;
+    let selectedVoice = null;
+
+    function initAndUnlockAudio() {
+      // 1. Web Audio Context Unlock
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      playTone(523.25, 'sine', 0.1, 0.1); // subtle chime
+
+      // 2. Speech Synthesis Pre-warm
+      if (synth) {
+        synth.cancel();
+        const warmUp = new SpeechSynthesisUtterance("Welcome");
+        warmUp.volume = 0.01;
+        synth.speak(warmUp);
+
+        // Find native US English voice
+        const voices = synth.getVoices();
+        selectedVoice = voices.find(v => v.lang === 'en-US' && !v.localService) ||
+                        voices.find(v => v.lang === 'en-US') ||
+                        voices.find(v => v.lang.startsWith('en'));
+      }
+
+      showScreen('screen-menu');
+      updateStatsHUD();
+    }
+
+    if (synth && synth.onvoiceschanged !== undefined) {
+      synth.onvoiceschanged = () => {
+        const voices = synth.getVoices();
+        selectedVoice = voices.find(v => v.lang === 'en-US');
+      };
+    }
+
+    function speakWord(text, rate = 0.85) {
+      if (!synth) return;
+      synth.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US';
+      utter.rate = rate;
+      if (selectedVoice) utter.voice = selectedVoice;
+      synth.speak(utter);
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.15) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playSuccessChime() {
+      playTone(523.25, 'triangle', 0.1, 0.15); // C5
+      setTimeout(() => playTone(659.25, 'triangle', 0.1, 0.15), 80); // E5
+      setTimeout(() => playTone(783.99, 'triangle', 0.25, 0.18), 160); // G5
+    }
+
+    function playErrorBonk() {
+      playTone(220, 'sawtooth', 0.2, 0.15);
+    }
+
+    function playFanfare() {
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((freq, idx) => {
+        setTimeout(() => playTone(freq, 'triangle', 0.28, 0.2), idx * 120);
+      });
+    }
+
+    /* ==========================================================================
+       3. GAME STATE & SETUP
+       ========================================================================== */
+    let currentMode = 'phonics'; // 'phonics' or 'sight'
+    let selectedPhonicsCategory = 'all';
+    let selectedSightCategory = 'all';
+    let timerLimit = 0; // 0 = zen, 5, 3, 1.5
+
+    let roundQuestions = [];
+    let currentQIndex = 0;
+    let roundCorrectCount = 0;
+    let roundTimes = [];
+    let roundWeakWords = [];
+    let qStartTime = 0;
+    let timerInterval = null;
+
+    // Build Pills in Menu
+    function buildMenuPills() {
+      // Phonics Pills
+      const pBox = document.getElementById('phonics-category-pills');
+      pBox.innerHTML = `<button class="pill-btn active" onclick="setPhonicsCat('all', this)">全部規則混合</button>` +
+        PHONICS_DATA.map(d => `<button class="pill-btn" onclick="setPhonicsCat('${d.id}', this)">${d.name}</button>`).join('');
+
+      // Sight Pills
+      const sBox = document.getElementById('sight-category-pills');
+      sBox.innerHTML = `<button class="pill-btn active" onclick="setSightCat('all', this)">全部 60 字大亂鬥</button>` +
+        SIGHT_WORDS_DATA.map(g => `<button class="pill-btn" onclick="setSightCat('${g.id}', this)">${g.name}</button>`).join('');
+    }
+    buildMenuPills();
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('btn-mode-phonics').classList.toggle('selected', mode === 'phonics');
+      document.getElementById('btn-mode-sight').classList.toggle('selected', mode === 'sight');
+      document.getElementById('sub-options-phonics').style.display = mode === 'phonics' ? 'block' : 'none';
+      document.getElementById('sub-options-sight').style.display = mode === 'sight' ? 'block' : 'none';
+    }
+
+    function setPhonicsCat(cat, btn) {
+      selectedPhonicsCategory = cat;
+      document.querySelectorAll('#phonics-category-pills .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function setSightCat(cat, btn) {
+      selectedSightCategory = cat;
+      document.querySelectorAll('#sight-category-pills .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function setTimerLimit(sec, btn) {
+      timerLimit = sec;
+      btn.parentElement.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function backToMenu() {
+      clearInterval(timerInterval);
+      if (synth) synth.cancel();
+      showScreen('screen-menu');
+      updateStatsHUD();
+    }
+
+    /* ==========================================================================
+       4. QUESTION GENERATOR
+       ========================================================================== */
+    function generatePhonicsRound() {
+      let pool = [];
+      if (selectedPhonicsCategory === 'all') {
+        pool = PHONICS_DATA;
+      } else {
+        pool = PHONICS_DATA.filter(d => d.id === selectedPhonicsCategory);
+      }
+
+      const questions = [];
+      for (let i = 0; i < 10; i++) {
+        const cat = pool[Math.floor(Math.random() * pool.length)];
+        const isReal = Math.random() > 0.5;
+        const wordList = isReal ? cat.real : cat.alien;
+        const word = wordList[Math.floor(Math.random() * wordList.length)];
+        questions.push({ word, isReal, type: 'phonics' });
+      }
+      return questions;
+    }
+
+    function generateSightWordsRound() {
+      let pool = [];
+      if (selectedSightCategory === 'all') {
+        pool = ALL_SIGHT_WORDS;
+      } else {
+        const group = SIGHT_WORDS_DATA.find(g => g.id === selectedSightCategory);
+        pool = group ? group.words : ALL_SIGHT_WORDS;
+      }
+
+      // Shuffle pool and take up to 10
+      const shuffled = [...pool].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 10);
+
+      return selected.map(targetWord => {
+        // Generate 3 distractors
+        const others = ALL_SIGHT_WORDS.filter(w => w !== targetWord);
+        const distractors = others.sort(() => 0.5 - Math.random()).slice(0, 3);
+        const choices = [targetWord, ...distractors].sort(() => 0.5 - Math.random());
+        return { targetWord, choices, type: 'sight' };
+      });
+    }
+
+    function startRound(customQuestions = null) {
+      clearInterval(timerInterval);
+      roundQuestions = customQuestions || (currentMode === 'phonics' ? generatePhonicsRound() : generateSightWordsRound());
+      currentQIndex = 0;
+      roundCorrectCount = 0;
+      roundTimes = [];
+      roundWeakWords = [];
+
+      showScreen(currentMode === 'phonics' ? 'screen-phonics' : 'screen-sight');
+      loadQuestion();
+    }
+
+    /* ==========================================================================
+       5. GAMEPLAY LOOP
+       ========================================================================== */
+    function loadQuestion() {
+      clearInterval(timerInterval);
+      const q = roundQuestions[currentQIndex];
+      qStartTime = Date.now();
+
+      if (currentMode === 'phonics') {
+        document.getElementById('phonics-q-idx').innerText = `${currentQIndex + 1} / ${roundQuestions.length}`;
+        document.getElementById('phonics-display-word').innerText = q.word;
+        speakWord(q.word);
+        startTimer('phonics-timer-bar');
+      } else {
+        document.getElementById('sight-q-idx').innerText = `${currentQIndex + 1} / ${roundQuestions.length}`;
+        speakWord(q.targetWord);
+
+        const choicesBox = document.getElementById('sight-choices-box');
+        choicesBox.innerHTML = '';
+        q.choices.forEach(choice => {
+          const btn = document.createElement('button');
+          btn.className = 'sight-choice-btn';
+          btn.innerText = choice;
+          btn.onclick = () => handleSightAnswer(choice, btn);
+          choicesBox.appendChild(btn);
+        });
+        startTimer('sight-timer-bar');
+      }
+    }
+
+    function speakCurrentTarget() {
+      const q = roundQuestions[currentQIndex];
+      if (currentMode === 'phonics') {
+        speakWord(q.word);
+      } else {
+        speakWord(q.targetWord);
+      }
+    }
+
+    function startTimer(barId) {
+      const bar = document.getElementById(barId);
+      if (timerLimit === 0) {
+        bar.style.width = '100%';
+        bar.style.backgroundColor = 'var(--accent-green)';
+        return;
+      }
+
+      const totalMs = timerLimit * 1000;
+      const intervalMs = 40;
+      let elapsedMs = 0;
+
+      bar.style.width = '100%';
+      bar.style.backgroundColor = 'var(--accent-green)';
+
+      timerInterval = setInterval(() => {
+        elapsedMs += intervalMs;
+        const remainingRatio = Math.max(0, 1 - (elapsedMs / totalMs));
+        bar.style.width = `${remainingRatio * 100}%`;
+
+        if (remainingRatio < 0.3) {
+          bar.style.backgroundColor = 'var(--accent-red)';
+        } else if (remainingRatio < 0.6) {
+          bar.style.backgroundColor = 'var(--accent-yellow)';
+        }
+
+        if (elapsedMs >= totalMs) {
+          clearInterval(timerInterval);
+          handleTimeout();
+        }
+      }, intervalMs);
+    }
+
+    function handleTimeout() {
+      playErrorBonk();
+      const q = roundQuestions[currentQIndex];
+      const word = currentMode === 'phonics' ? q.word : q.targetWord;
+      if (!roundWeakWords.includes(word)) roundWeakWords.push(word);
+      roundTimes.push(timerLimit);
+      nextQuestion();
+    }
+
+    function handlePhonicsAnswer(userChoiceIsReal) {
+      clearInterval(timerInterval);
+      const q = roundQuestions[currentQIndex];
+      const elapsedSec = (Date.now() - qStartTime) / 1000;
+      roundTimes.push(elapsedSec);
+
+      if (userChoiceIsReal === q.isReal) {
+        playSuccessChime();
+        roundCorrectCount++;
+      } else {
+        playErrorBonk();
+        if (!roundWeakWords.includes(q.word)) roundWeakWords.push(q.word);
+      }
+      nextQuestion();
+    }
+
+    function handleSightAnswer(selectedWord, btnElement) {
+      const q = roundQuestions[currentQIndex];
+      const elapsedSec = (Date.now() - qStartTime) / 1000;
+
+      if (selectedWord === q.targetWord) {
+        clearInterval(timerInterval);
+        playSuccessChime();
+        roundCorrectCount++;
+        roundTimes.push(elapsedSec);
+
+        // Mark Mastered in LocalStorage if < 2s
+        if (elapsedSec < 2.0) {
+          markWordMastered(q.targetWord);
+        }
+        nextQuestion();
+      } else {
+        playErrorBonk();
+        btnElement.classList.add('shake');
+        if (!roundWeakWords.includes(q.targetWord)) roundWeakWords.push(q.targetWord);
+      }
+    }
+
+    function nextQuestion() {
+      currentQIndex++;
+      if (currentQIndex < roundQuestions.length) {
+        setTimeout(loadQuestion, 350);
+      } else {
+        setTimeout(showRoundReport, 400);
+      }
+    }
+
+    /* ==========================================================================
+       6. REPORT & PROGRESS PERSISTENCE
+       ========================================================================== */
+    function showRoundReport() {
+      clearInterval(timerInterval);
+      showScreen('screen-report');
+
+      const total = roundQuestions.length;
+      const pct = Math.round((roundCorrectCount / total) * 100);
+
+      // Stars
+      let stars = '⭐';
+      if (pct >= 90) {
+        stars = '⭐⭐⭐';
+        playFanfare();
+      } else if (pct >= 70) {
+        stars = '⭐⭐';
+        playSuccessChime();
+      } else {
+        playErrorBonk();
+      }
+      document.getElementById('report-stars').innerText = stars;
+      document.getElementById('report-accuracy').innerText = `答對率: ${roundCorrectCount} / ${total} (${pct}%)`;
+
+      // Speed Badge
+      const avgTime = roundTimes.length ? (roundTimes.reduce((a, b) => a + b, 0) / roundTimes.length).toFixed(1) : '0';
+      let speedBadge = `⚡ 平均反應: ${avgTime}秒/題 (光速直覺)`;
+      if (avgTime > 3.0) speedBadge = `🤔 平均反應: ${avgTime}秒/題 (多音節解碼中)`;
+      else if (avgTime > 1.8) speedBadge = `👍 平均反應: ${avgTime}秒/題 (良好辨識)`;
+      document.getElementById('report-speed').innerText = speedBadge;
+
+      // Weak Words Container
+      const weakBox = document.getElementById('report-weak-words');
+      weakBox.innerHTML = '';
+      if (roundWeakWords.length === 0) {
+        weakBox.innerHTML = `<span style="color: var(--accent-green); font-size: 18px; font-weight: 700;">🌟 太完美了！本輪沒有任何卡關單字，全數解鎖！</span>`;
+        document.getElementById('btn-redrill').style.display = 'none';
+      } else {
+        document.getElementById('btn-redrill').style.display = 'inline-flex';
+        document.getElementById('btn-redrill').innerText = `🔁 僅重測弱項單字 (${roundWeakWords.length})`;
+        roundWeakWords.forEach(w => {
+          const chip = document.createElement('div');
+          chip.className = 'weak-word-chip';
+          chip.innerHTML = `🔊 ${w}`;
+          chip.onclick = () => speakWord(w, 0.75); // Slower pronunciation
+          weakBox.appendChild(chip);
+        });
+      }
+    }
+
+    function startRedrill() {
+      if (roundWeakWords.length === 0) return;
+      let drillQuestions = [];
+      if (currentMode === 'phonics') {
+        drillQuestions = roundWeakWords.map(w => {
+          const allAlien = PHONICS_DATA.flatMap(d => d.alien);
+          const isReal = !allAlien.includes(w);
+          return { word: w, isReal, type: 'phonics' };
+        });
+      } else {
+        drillQuestions = roundWeakWords.map(w => {
+          const others = ALL_SIGHT_WORDS.filter(item => item !== w);
+          const distractors = others.sort(() => 0.5 - Math.random()).slice(0, 3);
+          const choices = [w, ...distractors].sort(() => 0.5 - Math.random());
+          return { targetWord: w, choices, type: 'sight' };
+        });
+      }
+      startRound(drillQuestions);
+    }
+
+    function markWordMastered(word) {
+      try {
+        let mastered = JSON.parse(localStorage.getItem('myview_mastered_words') || '[]');
+        if (!mastered.includes(word)) {
+          mastered.push(word);
+          localStorage.setItem('myview_mastered_words', JSON.stringify(mastered));
+        }
+      } catch (e) {
+        console.warn('LocalStorage unavailable', e);
+      }
+    }
+
+    function updateStatsHUD() {
+      try {
+        const mastered = JSON.parse(localStorage.getItem('myview_mastered_words') || '[]');
+        document.getElementById('mastered-stats-pill').innerText = `⭐ 已精熟高頻字: ${mastered.length} / 60`;
+      } catch (e) {
+        document.getElementById('mastered-stats-pill').innerText = `⭐ 已精熟高頻字: 0 / 60`;
+      }
+    }
+  </script>
+</body>
+</html>
